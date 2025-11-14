@@ -21,43 +21,48 @@ public class AvroConversionService {
             switch (event.getType()) {
                 case LIGHT_SENSOR_EVENT:
                     LightSensorEvent lightEvent = (LightSensorEvent) event;
-                    builder.setPayload(LightSensorAvro.newBuilder()
+                    LightSensorAvro lightPayload = LightSensorAvro.newBuilder()
                             .setLinkQuality(lightEvent.getLinkQuality() != null ? lightEvent.getLinkQuality() : 0)
                             .setLuminosity(lightEvent.getLuminosity() != null ? lightEvent.getLuminosity() : 0)
-                            .build());
+                            .build();
+                    builder.setPayload(lightPayload);
                     break;
 
                 case TEMPERATURE_SENSOR_EVENT:
                     TemperatureSensorEvent tempEvent = (TemperatureSensorEvent) event;
-                    builder.setPayload(TemperatureSensorAvro.newBuilder()
+                    TemperatureSensorAvro tempPayload = TemperatureSensorAvro.newBuilder()
                             .setTemperatureC(tempEvent.getTemperatureC() != null ? tempEvent.getTemperatureC() : 0)
                             .setTemperatureF(tempEvent.getTemperatureF() != null ? tempEvent.getTemperatureF() : 0)
-                            .build());
+                            .build();
+                    builder.setPayload(tempPayload);
                     break;
 
                 case SWITCH_SENSOR_EVENT:
                     SwitchSensorEvent switchEvent = (SwitchSensorEvent) event;
-                    builder.setPayload(SwitchSensorAvro.newBuilder()
+                    SwitchSensorAvro switchPayload = SwitchSensorAvro.newBuilder()
                             .setState(switchEvent.getState() != null ? switchEvent.getState() : false)
-                            .build());
+                            .build();
+                    builder.setPayload(switchPayload);
                     break;
 
                 case CLIMATE_SENSOR_EVENT:
                     ClimateSensorEvent climateEvent = (ClimateSensorEvent) event;
-                    builder.setPayload(ClimateSensorAvro.newBuilder()
+                    ClimateSensorAvro climatePayload = ClimateSensorAvro.newBuilder()
                             .setTemperatureC(climateEvent.getTemperatureC() != null ? climateEvent.getTemperatureC() : 0)
                             .setHumidity(climateEvent.getHumidity() != null ? climateEvent.getHumidity() : 0)
                             .setCo2Level(climateEvent.getCo2Level() != null ? climateEvent.getCo2Level() : 0)
-                            .build());
+                            .build();
+                    builder.setPayload(climatePayload);
                     break;
 
                 case MOTION_SENSOR_EVENT:
                     MotionSensorEvent motionEvent = (MotionSensorEvent) event;
-                    builder.setPayload(MotionSensorAvro.newBuilder()
+                    MotionSensorAvro motionPayload = MotionSensorAvro.newBuilder()
                             .setLinkQuality(motionEvent.getLinkQuality() != null ? motionEvent.getLinkQuality() : 0)
                             .setMotion(motionEvent.getMotion() != null ? motionEvent.getMotion() : false)
                             .setVoltage(motionEvent.getVoltage() != null ? motionEvent.getVoltage() : 0)
-                            .build());
+                            .build();
+                    builder.setPayload(motionPayload);
                     break;
             }
 
@@ -81,22 +86,24 @@ public class AvroConversionService {
             switch (event.getType()) {
                 case DEVICE_ADDED:
                     DeviceAddedEvent deviceAdded = (DeviceAddedEvent) event;
-                    builder.setPayload(DeviceAddedEventAvro.newBuilder()
+                    DeviceAddedEventAvro deviceAddedPayload = DeviceAddedEventAvro.newBuilder()
                             .setId(deviceAdded.getId())
                             .setDeviceType(DeviceTypeAvro.valueOf(deviceAdded.getDeviceType().name()))
-                            .build());
+                            .build();
+                    builder.setPayload(deviceAddedPayload);
                     break;
 
                 case DEVICE_REMOVED:
                     DeviceRemovedEvent deviceRemoved = (DeviceRemovedEvent) event;
-                    builder.setPayload(DeviceRemovedEventAvro.newBuilder()
+                    DeviceRemovedEventAvro deviceRemovedPayload = DeviceRemovedEventAvro.newBuilder()
                             .setId(deviceRemoved.getId())
-                            .build());
+                            .build();
+                    builder.setPayload(deviceRemovedPayload);
                     break;
 
                 case SCENARIO_ADDED:
                     ScenarioAddedEvent scenarioAdded = (ScenarioAddedEvent) event;
-                    builder.setPayload(ScenarioAddedEventAvro.newBuilder()
+                    ScenarioAddedEventAvro scenarioAddedPayload = ScenarioAddedEventAvro.newBuilder()
                             .setName(scenarioAdded.getName())
                             .setConditions(scenarioAdded.getConditions().stream()
                                     .map(this::convertConditionToAvro)
@@ -104,14 +111,16 @@ public class AvroConversionService {
                             .setActions(scenarioAdded.getActions().stream()
                                     .map(this::convertActionToAvro)
                                     .collect(Collectors.toList()))
-                            .build());
+                            .build();
+                    builder.setPayload(scenarioAddedPayload);
                     break;
 
                 case SCENARIO_REMOVED:
                     ScenarioRemovedEvent scenarioRemoved = (ScenarioRemovedEvent) event;
-                    builder.setPayload(ScenarioRemovedEventAvro.newBuilder()
+                    ScenarioRemovedEventAvro scenarioRemovedPayload = ScenarioRemovedEventAvro.newBuilder()
                             .setName(scenarioRemoved.getName())
-                            .build());
+                            .build();
+                    builder.setPayload(scenarioRemovedPayload);
                     break;
             }
 
@@ -126,19 +135,31 @@ public class AvroConversionService {
     }
 
     private ScenarioConditionAvro convertConditionToAvro(ScenarioCondition condition) {
-        return ScenarioConditionAvro.newBuilder()
+        ScenarioConditionAvro.Builder builder = ScenarioConditionAvro.newBuilder()
                 .setSensorId(condition.getSensorId())
                 .setType(ConditionTypeAvro.valueOf(condition.getType().name()))
-                .setOperation(ConditionOperationAvro.valueOf(condition.getOperation().name()))
-                .setValue(condition.getValue() != null ? condition.getValue() : 0)
-                .build();
+                .setOperation(ConditionOperationAvro.valueOf(condition.getOperation().name()));
+
+        if (condition.getValue() != null) {
+            builder.setValue(condition.getValue());
+        } else {
+            builder.setValue(null);
+        }
+
+        return builder.build();
     }
 
     private DeviceActionAvro convertActionToAvro(DeviceAction action) {
-        return DeviceActionAvro.newBuilder()
+        DeviceActionAvro.Builder builder = DeviceActionAvro.newBuilder()
                 .setSensorId(action.getSensorId())
-                .setType(ActionTypeAvro.valueOf(action.getType().name()))
-                .setValue(action.getValue() != null ? action.getValue() : 0)
-                .build();
+                .setType(ActionTypeAvro.valueOf(action.getType().name()));
+
+        if (action.getValue() != null) {
+            builder.setValue(action.getValue());
+        } else {
+            builder.setValue(null);
+        }
+
+        return builder.build();
     }
 }
