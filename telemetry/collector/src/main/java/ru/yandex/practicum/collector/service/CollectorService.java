@@ -16,23 +16,25 @@ public class CollectorService {
 
     public void processSensorEvent(SensorEvent event) {
         try {
+            log.info("Processing sensor event: {}", event);
             var avroEvent = avroConversionService.convertToAvro(event);
             kafkaProducerService.sendSensorEvent(event.getHubId(), avroEvent);
-            log.info("Processed sensor event for hub: {}, sensor: {}", event.getHubId(), event.getId());
+            log.info("Successfully processed sensor event for hub: {}, sensor: {}", event.getHubId(), event.getId());
         } catch (Exception e) {
             log.error("Error processing sensor event: {}", event, e);
-            throw new RuntimeException("Failed to process sensor event", e);
+            throw new RuntimeException("Failed to process sensor event: " + e.getMessage(), e);
         }
     }
 
     public void processHubEvent(HubEvent event) {
         try {
+            log.info("Processing hub event: {}", event);
             var avroEvent = avroConversionService.convertToAvro(event);
             kafkaProducerService.sendHubEvent(event.getHubId(), avroEvent);
-            log.info("Processed hub event for hub: {}", event.getHubId());
+            log.info("Successfully processed hub event for hub: {}", event.getHubId());
         } catch (Exception e) {
             log.error("Error processing hub event: {}", event, e);
-            throw new RuntimeException("Failed to process hub event", e);
+            throw new RuntimeException("Failed to process hub event: " + e.getMessage(), e);
         }
     }
 }

@@ -6,12 +6,12 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
-      properties:
-        spring.json.add.type.headers: false
 
 server:
   port: 8080
 
 logging:
   level:
-    ru.yandex.practicum.collector: DEBUG
+    ru.yandex.practicum.collector: INFO
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
