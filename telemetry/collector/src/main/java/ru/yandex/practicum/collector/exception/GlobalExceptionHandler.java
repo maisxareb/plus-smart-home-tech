@@ -20,13 +20,13 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        log.warn("Validation error: {}", errorMessage);
-        return ResponseEntity.badRequest().body("Validation error: " + errorMessage);
+        log.warn("Ошибка валидации: {}", errorMessage);
+        return ResponseEntity.badRequest().body("Ошибка валидации: " + errorMessage);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
-        log.error("Internal server error", ex);
-        return ResponseEntity.internalServerError().body("Internal server error");
+        log.error("Внутренняя ошибка сервера", ex);
+        return ResponseEntity.internalServerError().body("Внутренняя ошибка сервера");
     }
 }

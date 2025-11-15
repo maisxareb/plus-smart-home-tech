@@ -16,23 +16,23 @@ public class CollectorService {
 
     public void processSensorEvent(SensorEvent event) {
         try {
-            log.info("Processing sensor event: {}", event);
+            log.info("Обработка события датчика: {}", event);
             var avroEvent = avroConversionService.convertToAvro(event);
             kafkaProducerService.sendSensorEvent(event.getHubId(), avroEvent);
-            log.info("Successfully processed sensor event for hub: {}, sensor: {}", event.getHubId(), event.getId());
+            log.info("Успешно обработанное сенсорное событие для хаба: {}, датчик: {}", event.getHubId(), event.getId());
         } catch (Exception e) {
-            log.error("Error processing sensor event: {}", event, e);
+            log.error("Событие датчика обработки ошибок: {}", event, e);
         }
     }
 
     public void processHubEvent(HubEvent event) {
         try {
-            log.info("Processing hub event: {}", event);
+            log.info("Событие хаба данных: {}", event);
             var avroEvent = avroConversionService.convertToAvro(event);
             kafkaProducerService.sendHubEvent(event.getHubId(), avroEvent);
-            log.info("Successfully processed hub event for hub: {}", event.getHubId());
+            log.info("Событие хаба успешно обработано для хаба: {}", event.getHubId());
         } catch (Exception e) {
-            log.error("Error processing hub event: {}", event, e);
+            log.error("Ошибка обработки события хаба: {}", event, e);
         }
     }
 }

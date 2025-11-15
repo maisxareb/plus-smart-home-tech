@@ -14,21 +14,21 @@ public class KafkaProducerService {
 
     public void sendSensorEvent(String key, Object event) {
         try {
-            log.info("Sending sensor event to Kafka: {}", event);
+            log.info("Отправка события датчика в Kafka: {}", event);
             kafkaTemplate.send("telemetry.sensors.v1", key, event);
-            log.info("Sensor event sent successfully");
+            log.info("Событие датчика успешно отправлено");
         } catch (Exception e) {
-            log.error("Failed to send sensor event to Kafka", e);
+            log.error("Не удалось отправить событие датчика в Kafka", e);
         }
     }
 
     public void sendHubEvent(String key, Object event) {
         try {
-            log.info("Sending hub event to Kafka: {}", event);
+            log.info("Отправка события хаба в Kafka: {}", event);
             kafkaTemplate.send("telemetry.hubs.v1", key, event);
-            log.info("Hub event sent successfully");
+            log.info("Событие хаба успешно отправлено");
         } catch (Exception e) {
-            log.error("Failed to send hub event to Kafka", e);
+            log.error("Не удалось отправить событие хаба в Kafka", e);
         }
     }
 }

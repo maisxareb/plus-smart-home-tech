@@ -68,7 +68,7 @@ public class AvroConversionService {
 
             return builder.build();
         } catch (Exception e) {
-            log.error("Error converting sensor event to Avro: {}", event, e);
+            log.error("Ошибка при преобразовании события датчика в Avro: {}", event, e);
             return SensorEventAvro.newBuilder()
                     .setId(event.getId())
                     .setHubId(event.getHubId())
@@ -126,7 +126,7 @@ public class AvroConversionService {
 
             return builder.build();
         } catch (Exception e) {
-            log.error("Error converting hub event to Avro: {}", event, e);
+            log.error("Ошибка преобразования события хаба в Avro: {}", event, e);
             return HubEventAvro.newBuilder()
                     .setHubId(event.getHubId())
                     .setTimestamp(event.getTimestamp().toEpochMilli())

@@ -5,13 +5,12 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
 
 server:
   port: 8080
 
 logging:
   level:
-    ru.yandex.practicum.collector: INFO
-    org.apache.kafka: WARN
-    org.springframework.kafka: WARN
+    ru.yandex.practicum.collector: DEBUG
+    org.apache.kafka: DEBUG
+    org.springframework.kafka: DEBUG
