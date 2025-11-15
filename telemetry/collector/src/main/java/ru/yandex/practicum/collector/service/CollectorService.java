@@ -22,7 +22,6 @@ public class CollectorService {
             log.info("Successfully processed sensor event for hub: {}, sensor: {}", event.getHubId(), event.getId());
         } catch (Exception e) {
             log.error("Error processing sensor event: {}", event, e);
-            throw new RuntimeException("Failed to process sensor event: " + e.getMessage(), e);
         }
     }
 
@@ -34,7 +33,6 @@ public class CollectorService {
             log.info("Successfully processed hub event for hub: {}", event.getHubId());
         } catch (Exception e) {
             log.error("Error processing hub event: {}", event, e);
-            throw new RuntimeException("Failed to process hub event: " + e.getMessage(), e);
         }
     }
 }
