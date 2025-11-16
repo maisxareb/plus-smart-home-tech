@@ -12,7 +12,7 @@ import ru.yandex.practicum.collector.service.CollectorService;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/events")
+@RequestMapping("/events")
 public class CollectorController {
 
     private final CollectorService collectorService;
