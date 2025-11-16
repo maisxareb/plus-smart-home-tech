@@ -21,13 +21,13 @@ public class CollectorController {
     public ResponseEntity<Void> collectSensorEvent(@Valid @RequestBody SensorEvent event) {
         log.debug("Получено событие датчика: {}", event);
         collectorService.processSensorEvent(event);
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/hubs")
     public ResponseEntity<Void> collectHubEvent(@Valid @RequestBody HubEvent event) {
         log.debug("Получено событие хаба: {}", event);
         collectorService.processHubEvent(event);
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok().build();
     }
 }
