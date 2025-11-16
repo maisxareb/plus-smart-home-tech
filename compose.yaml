@@ -33,3 +33,16 @@ services:
                              --partitions 1 --replication-factor 1 --if-not-exists \
                              --bootstrap-server kafka:29092'"
     init: true
+
+  collector:
+    build:
+      context: ./telemetry/collector
+      dockerfile: Dockerfile
+    container_name: collector
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    restart: unless-stopped
