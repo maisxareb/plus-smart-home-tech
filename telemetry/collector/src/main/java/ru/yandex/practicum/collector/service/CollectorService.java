@@ -22,6 +22,7 @@ public class CollectorService {
             log.info("Успешно обработанное сенсорное событие для хаба: {}, датчик: {}", event.getHubId(), event.getId());
         } catch (Exception e) {
             log.error("Событие датчика обработки ошибок: {}", event, e);
+            throw new RuntimeException("Ошибка обработки события датчика", e);
         }
     }
 
@@ -33,6 +34,7 @@ public class CollectorService {
             log.info("Событие хаба успешно обработано для хаба: {}", event.getHubId());
         } catch (Exception e) {
             log.error("Ошибка обработки события хаба: {}", event, e);
+            throw new RuntimeException("Ошибка обработки события хаба", e);
         }
     }
 }

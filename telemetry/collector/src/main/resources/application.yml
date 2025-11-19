@@ -9,6 +9,10 @@ spring:
       properties:
         spring.json.add.type.headers: false
 
+grpc:
+  server:
+    port: 9090
+
 server:
   port: 8080
 
