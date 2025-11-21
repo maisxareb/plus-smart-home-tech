@@ -6,8 +6,8 @@ import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.analyzer.grpc.HubRouterClient;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
+import ru.yandex.practicum.grpc.telemetry.hubrouter.HubRouterControllerGrpc;
 import ru.yandex.practicum.grpc.telemetry.hubrouter.DeviceActionRequest;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ActionExecutionService {
 
-    private final HubRouterClient hubRouterClient;
+    private final HubRouterControllerGrpc.HubRouterControllerBlockingStub hubRouterStub;
 
     public void executeActions(String hubId, String scenarioName, List<DeviceActionProto> actions) {
         for (DeviceActionProto action : actions) {
@@ -28,7 +28,7 @@ public class ActionExecutionService {
                         .setAction(action)
                         .build();
 
-                Empty response = hubRouterClient.getStub().handleDeviceAction(request);
+                Empty response = hubRouterStub.handleDeviceAction(request);
                 log.info("Successfully executed action for device: {} in scenario: {} for hub: {}",
                         action.getSensorId(), scenarioName, hubId);
 
