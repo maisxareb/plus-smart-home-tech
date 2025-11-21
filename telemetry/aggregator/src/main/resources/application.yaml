@@ -1,43 +1,12 @@
 server:
-  port: 8082
+  port: 8081
 
 spring:
   application:
-    name: analyzer
-
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        format_sql: true
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
+    name: aggregator
   kafka:
     bootstrap-servers: localhost:9092
 
-grpc:
-  client:
-    hub-router:
-      address: 'static://localhost:59090'
-      enableKeepAlive: true
-      keepAliveWithoutCalls: true
-      negotiationType: plaintext
-
 logging:
   level:
-    ru.yandex.practicum.analyzer: INFO
-    org.hibernate.SQL: DEBUG
-    org.springframework.kafka: WARN
+    ru.yandex.practicum.aggregator: INFO
