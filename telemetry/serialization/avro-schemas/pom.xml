@@ -21,6 +21,33 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.practicum</groupId>
+            <artifactId>proto-schemas</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -33,22 +60,17 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.11.3</version>
                 <executions>
                     <execution>
                         <id>schemas</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>idl-protocol</goal>
-                            <goal>schema</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
-                            <outputDirectory>${project.build.directory}/generated-sources/avro</outputDirectory>
+                            <sourceDirectory>${project.basedir}</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
                             <stringType>String</stringType>
-                            <createSetters>false</createSetters>
-                            <enableDecimalLogicalType>true</enableDecimalLogicalType>
-                            <fieldVisibility>private</fieldVisibility>
                         </configuration>
                     </execution>
                 </executions>
@@ -67,7 +89,7 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.build.directory}/generated-sources/avro</source>
+                                <source>${project.build.directory}/generated-sources</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -75,4 +97,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
