@@ -62,12 +62,23 @@ public class SnapshotProcessingService {
     }
 
     private boolean evaluateScenario(Scenario scenario, Map<String, DeviceStateData> deviceStates) {
+        if (scenario.getConditions() == null || scenario.getConditions().isEmpty()) {
+            log.debug("Scenario '{}' has no conditions", scenario.getName());
+            return false;
+        }
+
         for (ScenarioCondition scenarioCondition : scenario.getConditions()) {
+            if (scenarioCondition.getSensor() == null || scenarioCondition.getCondition() == null) {
+                log.warn("Incomplete scenario condition data for scenario: {}", scenario.getName());
+                return false;
+            }
+
             String sensorId = scenarioCondition.getSensor().getId();
             Condition condition = scenarioCondition.getCondition();
             DeviceStateData deviceState = deviceStates.get(sensorId);
 
             if (deviceState == null || !evaluateCondition(condition, deviceState)) {
+                log.debug("Condition not met for sensor: {} in scenario: {}", sensorId, scenario.getName());
                 return false;
             }
         }
@@ -76,7 +87,10 @@ public class SnapshotProcessingService {
 
     private boolean evaluateCondition(Condition condition, DeviceStateData deviceState) {
         Integer sensorValue = extractSensorValue(condition.getType(), deviceState);
-        if (sensorValue == null) return false;
+        if (sensorValue == null) {
+            log.debug("Cannot extract sensor value for condition type: {}", condition.getType());
+            return false;
+        }
 
         return switch (condition.getOperation()) {
             case EQUALS -> sensorValue.equals(condition.getValue());
@@ -132,9 +146,19 @@ public class SnapshotProcessingService {
     }
 
     private void executeScenarioActions(Scenario scenario, String hubId) {
+        if (scenario.getActions() == null || scenario.getActions().isEmpty()) {
+            log.warn("Scenario '{}' has no actions to execute", scenario.getName());
+            return;
+        }
+
         List<ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto> actions = new ArrayList<>();
 
         for (ScenarioAction scenarioAction : scenario.getActions()) {
+            if (scenarioAction.getAction() == null || scenarioAction.getSensor() == null) {
+                log.warn("Incomplete scenario action data for scenario: {}", scenario.getName());
+                continue;
+            }
+
             var action = scenarioAction.getAction();
             var sensor = scenarioAction.getSensor();
 
@@ -147,6 +171,10 @@ public class SnapshotProcessingService {
             actions.add(actionProto);
         }
 
-        actionExecutionService.executeActions(hubId, scenario.getName(), actions);
+        if (!actions.isEmpty()) {
+            actionExecutionService.executeActions(hubId, scenario.getName(), actions);
+        } else {
+            log.warn("No valid actions to execute for scenario: {}", scenario.getName());
+        }
     }
 }

@@ -8,8 +8,9 @@ import ru.yandex.practicum.analyzer.entity.*;
 import ru.yandex.practicum.analyzer.repository.ScenarioRepository;
 import ru.yandex.practicum.analyzer.repository.SensorRepository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,7 +21,25 @@ public class ScenarioService {
     private final SensorRepository sensorRepository;
 
     public List<Scenario> getScenariosByHubId(String hubId) {
-        return scenarioRepository.findByHubIdWithDetails(hubId);
+        List<Scenario> scenariosWithConditions = scenarioRepository.findByHubIdWithConditions(hubId);
+
+        if (scenariosWithConditions.isEmpty()) {
+            return scenariosWithConditions;
+        }
+
+        List<Scenario> scenariosWithActions = scenarioRepository.findByHubIdWithActions(hubId);
+
+        Map<Long, Scenario> scenarioMap = scenariosWithConditions.stream()
+                .collect(Collectors.toMap(Scenario::getId, Function.identity()));
+
+        for (Scenario scenarioWithActions : scenariosWithActions) {
+            Scenario targetScenario = scenarioMap.get(scenarioWithActions.getId());
+            if (targetScenario != null && scenarioWithActions.getActions() != null) {
+                targetScenario.setActions(scenarioWithActions.getActions());
+            }
+        }
+
+        return new ArrayList<>(scenarioMap.values());
     }
 
     @Transactional
