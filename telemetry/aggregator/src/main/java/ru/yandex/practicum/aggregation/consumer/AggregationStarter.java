@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
@@ -33,6 +34,7 @@ public class AggregationStarter {
     private String snapshotsTopic;
 
     private final List<SensorsSnapshotAvro> snapshotsList = new ArrayList<>();
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     public void start() {
         log.info("Начало метода start()");
@@ -43,39 +45,59 @@ public class AggregationStarter {
             snapshotConsumer.subscribe(List.of(snapshotsTopic));
             eventConsumer.subscribe(List.of(sensorsTopic));
 
-            while (true) {
-                var snapshotRecords = snapshotConsumer.poll(Duration.ofMillis(100));
-                snapshotRecords.forEach(record -> {
-                    checkUpdateState.putSnapshot(record.value());
-                    log.info("Снапшот hubId={} загружен из Kafka", record.value().getHubId());
-                });
-                snapshotConsumer.commitSync();
-
-                var eventRecords = eventConsumer.poll(Duration.ofMillis(100));
-                for (var record : eventRecords) {
-                    SensorEventAvro event = record.value();
-                    Optional<SensorsSnapshotAvro> updatedSnapshot =
-                            checkUpdateState.updateState(event);
-                    updatedSnapshot.ifPresent(snapshot -> {
-                        try {
-                            snapshotProducer.sendSnapshot(snapshot);
-                        } catch (Exception e) {
-                            log.error("Ошибка при отправке события в snapshots.v1: hubId={}",
-                                    snapshot.getHubId(), e);
-                        }
-                    });
-                }
-                eventConsumer.commitSync();
+            while (running.get()) {
+                pollAndProcessEvents(snapshotConsumer, eventConsumer);
             }
-        } catch (WakeupException ignored) {
+        } catch (WakeupException e) {
+            if (running.get()) {
+                log.error("WakeupException получен, но флаг running=true", e);
+                throw e;
+            }
+            log.info("WakeupException получен во время shutdown - игнорируем");
         } catch (Exception e) {
             log.error("Ошибка при агрегации событий от датчиков", e);
         } finally {
-            try {
-                snapshotProducer.flush();
-            } catch (Exception e) {
-                log.error("Ошибка закрытия продюсера", e);
-            }
+            closeResources();
         }
+    }
+
+    private void pollAndProcessEvents(Consumer<String, SensorsSnapshotAvro> snapshotConsumer,
+                                      Consumer<String, SensorEventAvro> eventConsumer) {
+        var snapshotRecords = snapshotConsumer.poll(Duration.ofMillis(100));
+        snapshotRecords.forEach(record -> {
+            checkUpdateState.putSnapshot(record.value());
+            log.info("Снапшот hubId={} загружен из Kafka", record.value().getHubId());
+        });
+        snapshotConsumer.commitSync();
+
+        var eventRecords = eventConsumer.poll(Duration.ofMillis(100));
+        for (var record : eventRecords) {
+            SensorEventAvro event = record.value();
+            Optional<SensorsSnapshotAvro> updatedSnapshot = checkUpdateState.updateState(event);
+            updatedSnapshot.ifPresent(snapshot -> {
+                try {
+                    snapshotProducer.sendSnapshot(snapshot);
+                } catch (Exception e) {
+                    log.error("Ошибка при отправке события в snapshots.v1: hubId={}",
+                            snapshot.getHubId(), e);
+                }
+            });
+        }
+        eventConsumer.commitSync();
+    }
+
+    private void closeResources() {
+        try {
+            snapshotProducer.flush();
+            log.info("Ресурсы успешно закрыты");
+        } catch (Exception e) {
+            log.error("Ошибка закрытия продюсера", e);
+        }
+    }
+
+    //Инициирует корректное завершение работы агрегатора. Устанавливает флаг running в false, что приводит к graceful shutdown.
+    public void shutdown() {
+        log.info("Инициирован shutdown агрегатора");
+        running.set(false);
     }
 }
