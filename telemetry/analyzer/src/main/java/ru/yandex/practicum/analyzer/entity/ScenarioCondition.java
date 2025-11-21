@@ -3,30 +3,26 @@ package ru.yandex.practicum.analyzer.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "scenario_conditions")
-@ToString
+@IdClass(ScenarioConditionId.class)
 public class ScenarioCondition {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id")
-    @ToString.Exclude
     private Scenario scenario;
 
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sensor_id")
-    @ToString.Exclude
     private Sensor sensor;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "condition_id")
-    @ToString.Exclude
     private Condition condition;
 }
