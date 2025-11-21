@@ -1,39 +1,38 @@
 CREATE TABLE IF NOT EXISTS scenarios (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    hub_id VARCHAR NOT NULL,
-    name VARCHAR NOT NULL,
+    type VARCHAR(50),
+    type VARCHAR(100),
     UNIQUE(hub_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS sensors (
-    id VARCHAR PRIMARY KEY,
-    hub_id VARCHAR NOT NULL,
-    device_type VARCHAR NOT NULL
+    id(100) VARCHAR PRIMARY KEY,
+    hub_id(100) VARCHAR
 );
 
 CREATE TABLE IF NOT EXISTS conditions (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    type VARCHAR NOT NULL,
-    operation VARCHAR NOT NULL,
+    type VARCHAR(50),
+    operation VARCHAR(50),
     value INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS actions (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    type VARCHAR NOT NULL,
+    type VARCHAR(50),
     value INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS scenario_conditions (
     scenario_id BIGINT REFERENCES scenarios(id) ON DELETE CASCADE,
-    sensor_id VARCHAR REFERENCES sensors(id) ON DELETE CASCADE,
+    sensor_id VARCHAR(100) REFERENCES sensors(id) ON DELETE CASCADE,
     condition_id BIGINT REFERENCES conditions(id) ON DELETE CASCADE,
     PRIMARY KEY (scenario_id, sensor_id, condition_id)
 );
 
 CREATE TABLE IF NOT EXISTS scenario_actions (
     scenario_id BIGINT REFERENCES scenarios(id) ON DELETE CASCADE,
-    sensor_id VARCHAR REFERENCES sensors(id) ON DELETE CASCADE,
+    sensor_id VARCHAR(100) REFERENCES sensors(id) ON DELETE CASCADE,
     action_id BIGINT REFERENCES actions(id) ON DELETE CASCADE,
     PRIMARY KEY (scenario_id, sensor_id, action_id)
 );
@@ -51,11 +50,11 @@ END;
 LANGUAGE plpgsql;
 
 CREATE OR REPLACE TRIGGER tr_bi_scenario_conditions_hub_id_check
-    BEFORE INSERT ON scenario_conditions
-    FOR EACH ROW
-    EXECUTE FUNCTION check_hub_id();
+BEFORE INSERT ON scenario_conditions
+FOR EACH ROW
+EXECUTE FUNCTION check_hub_id();
 
 CREATE OR REPLACE TRIGGER tr_bi_scenario_actions_hub_id_check
-    BEFORE INSERT ON scenario_actions
-    FOR EACH ROW
-    EXECUTE FUNCTION check_hub_id();
+BEFORE INSERT ON scenario_actions
+FOR EACH ROW
+EXECUTE FUNCTION check_hub_id();
