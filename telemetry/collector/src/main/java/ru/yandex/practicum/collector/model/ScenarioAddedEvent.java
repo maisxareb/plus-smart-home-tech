@@ -1,8 +1,5 @@
 package ru.yandex.practicum.collector.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,20 +10,12 @@ import java.util.List;
 @Setter
 @ToString(callSuper = true)
 public class ScenarioAddedEvent extends HubEvent {
-    @NotBlank
-    @Size(min = 3)
     private String name;
-
-    @NotNull
-    @Size(min = 1)
-    private List<@NotNull ScenarioCondition> conditions;
-
-    @NotNull
-    @Size(min = 1)
-    private List<@NotNull DeviceAction> actions;
+    private List<ScenarioCondition> conditions;
+    private List<DeviceAction> actions;
 
     @Override
     public HubEventType getType() {
-        return HubEventType.SCENARIO_ADDED;
+        return HubEventType.SCENARIO_ADDED_EVENT;
     }
 }

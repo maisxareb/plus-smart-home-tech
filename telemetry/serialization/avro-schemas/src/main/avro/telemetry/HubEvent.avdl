@@ -1,51 +1,71 @@
 @namespace("ru.yandex.practicum.kafka.telemetry.event")
 protocol HubEventProtocol {
 
-    import idl "DeviceTypeAvro.avdl";
-    import idl "ConditionTypeAvro.avdl";
-    import idl "ConditionOperationAvro.avdl";
-    import idl "ActionTypeAvro.avdl";
+	enum DeviceTypeAvro {
+		MOTION_SENSOR,
+		TEMPERATURE_SENSOR,
+		LIGHT_SENSOR,
+		CLIMATE_SENSOR,
+		SWITCH_SENSOR
+	}
 
-    record DeviceAddedEventAvro {
-        string id;
-        DeviceTypeAvro deviceType;
-    }
+	enum ConditionTypeAvro {
+		MOTION,
+		LUMINOSITY,
+		SWITCH,
+		TEMPERATURE,
+		CO2LEVEL,
+		HUMIDITY
+	}
 
-    record DeviceRemovedEventAvro {
-        string id;
-    }
+	enum ConditionOperationAvro {
+		EQUALS,
+		GREATER_THAN,
+		LOWER_THAN
+	}
 
-    record ScenarioConditionAvro {
-        string sensorId;
-        ConditionTypeAvro type;
-        ConditionOperationAvro operation;
-        union { null, int, boolean } value = null;
-    }
+	enum ActionTypeAvro {
+		ACTIVATE,
+		DEACTIVATE,
+		INVERSE,
+		SET_VALUE
+	}
 
-    record DeviceActionAvro {
-        string sensorId;
-        ActionTypeAvro type;
-        union { null, int } value = null;
-    }
+	record DeviceAddedEventAvro {
+		string id;
+		DeviceTypeAvro type;
+	}
 
-    record ScenarioAddedEventAvro {
-        string name;
-        array<ScenarioConditionAvro> conditions;
-        array<DeviceActionAvro> actions;
-    }
+	record DeviceRemovedEventAvro {
+		string id;
+	}
 
-    record ScenarioRemovedEventAvro {
-        string name;
-    }
+	record ScenarioConditionAvro {
+		string sensor_id;
+		ConditionTypeAvro type;
+		ConditionOperationAvro operation;
+		union {null, int, boolean} value = null;
+	}
 
-    record HubEventAvro {
-        string hubId;
-        long timestamp;
-        union {
-            DeviceAddedEventAvro,
-            DeviceRemovedEventAvro,
-            ScenarioAddedEventAvro,
-            ScenarioRemovedEventAvro
-        } payload;
-    }
+	record DeviceActionAvro {
+		string sensor_id;
+		ActionTypeAvro type;
+		int? value = null;
+	}
+
+	record ScenarioAddedEventAvro {
+		string name;
+		array<ScenarioConditionAvro> conditions;
+		array<DeviceActionAvro> actions;
+	}
+
+	record ScenarioRemovedEventAvro {
+		string name;
+	}
+
+	record HubEventAvro {
+		string hub_id;
+		timestamp_ms timestamp;
+		union {DeviceAddedEventAvro, DeviceRemovedEventAvro, ScenarioAddedEventAvro, ScenarioRemovedEventAvro} payload;
+	}
 }

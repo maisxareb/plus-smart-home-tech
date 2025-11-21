@@ -9,7 +9,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.analyzer.CheckScenarios;
 import ru.yandex.practicum.analyzer.grpc.AnalyzerClient;
-import ru.yandex.practicum.grpc.telemetry.hubrouter.DeviceActionRequest;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceActionRequest;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;

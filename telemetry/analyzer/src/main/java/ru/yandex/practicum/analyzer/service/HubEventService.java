@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.analyzer.model.*;
+import ru.yandex.practicum.analyzer.repository.*;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 @Slf4j

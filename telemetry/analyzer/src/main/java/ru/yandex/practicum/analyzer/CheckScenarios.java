@@ -5,16 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.analyzer.exception.EntityNotFoundException;
-import ru.yandex.practicum.analyzer.model.Scenario;
-import ru.yandex.practicum.analyzer.model.ScenarioAction;
-import ru.yandex.practicum.analyzer.model.ScenarioCondition;
-import ru.yandex.practicum.analyzer.repository.ScenarioActionRepository;
-import ru.yandex.practicum.analyzer.repository.ScenarioConditionRepository;
-import ru.yandex.practicum.analyzer.repository.ScenarioRepository;
-import ru.yandex.practicum.analyzer.repository.SensorRepository;
-import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
-import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
-import ru.yandex.practicum.grpc.telemetry.hubrouter.DeviceActionRequest;
+import ru.yandex.practicum.analyzer.model.*;
+import ru.yandex.practicum.analyzer.repository.*;
+import ru.yandex.practicum.grpc.telemetry.event.*;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.util.ArrayList;
@@ -69,27 +62,11 @@ public class CheckScenarios {
                         actionsByScenario.getOrDefault(scenario.getId(), List.of());
 
                 for (ScenarioAction action : actions) {
-                    // ИСПРАВЛЕНИЕ: преобразуем String в ActionTypeProto
-                    String actionTypeString = action.getAction().getType();
-                    ActionTypeProto actionTypeProto;
-                    try {
-                        actionTypeProto = ActionTypeProto.valueOf(actionTypeString);
-                    } catch (IllegalArgumentException e) {
-                        log.error("Неизвестный тип действия: {}", actionTypeString);
-                        continue;
-                    }
-
-                    Integer actionValue = action.getAction().getValue();
-
-                    DeviceActionProto.Builder deviceActionBuilder = DeviceActionProto.newBuilder()
+                    DeviceActionProto deviceActionProto = DeviceActionProto.newBuilder()
                             .setSensorId(action.getSensor().getId())
-                            .setType(actionTypeProto);
-
-                    if (actionValue != null) {
-                        deviceActionBuilder.setValue(actionValue);
-                    }
-
-                    DeviceActionProto deviceActionProto = deviceActionBuilder.build();
+                            .setType(ActionTypeProto.valueOf(action.getAction().getType()))
+                            .setValue(action.getAction().getValue())
+                            .build();
 
                     DeviceActionRequest request = DeviceActionRequest.newBuilder()
                             .setHubId(snapshot.getHubId())
@@ -106,17 +83,12 @@ public class CheckScenarios {
         return result;
     }
 
+
     private boolean checkCondition(ScenarioCondition condition, SensorsSnapshotAvro snapshot, String hubId) {
+
         String sensorId = condition.getSensor().getId();
 
-        SensorStateAvro state = null;
-        for (DeviceState deviceState : snapshot.getSensorsState()) {
-            if (sensorId.equals(deviceState.getDeviceId())) {
-                state = deviceState.getState();
-                break;
-            }
-        }
-
+        SensorStateAvro state = snapshot.getSensorsState().get(sensorId);
         if (state == null || state.getData() == null) {
             log.info("Данных для сенсора {} пока нет, пропускаем проверку", sensorId);
             return true;
@@ -125,65 +97,49 @@ public class CheckScenarios {
         sensorRepository.findByIdAndHubId(sensorId, hubId)
                 .orElseThrow(() -> new EntityNotFoundException("Датчик " + sensorId + " не найден"));
 
-        String operationString = condition.getCondition().getOperation();
-        String typeString = condition.getCondition().getType();
+        ConditionOperationAvro operation = ConditionOperationAvro.valueOf(condition.getCondition().getOperation());
 
-        ConditionOperationAvro operation;
-        ConditionTypeAvro deviceType;
-
-        try {
-            operation = ConditionOperationAvro.valueOf(operationString);
-            deviceType = ConditionTypeAvro.valueOf(typeString);
-        } catch (IllegalArgumentException e) {
-            log.error("Неизвестный тип операции или условия: operation={}, type={}", operationString, typeString);
-            return false;
-        }
-
-        Integer expectedValue = condition.getCondition().getValue();
+        ConditionTypeAvro deviceType = ConditionTypeAvro.valueOf(condition.getCondition().getType());
 
         return switch (deviceType) {
             case MOTION -> {
                 MotionSensorAvro data = (MotionSensorAvro) state.getData();
                 int actual = data.getMotion() ? 1 : 0;
-                yield checkOperation(operation, actual, expectedValue);
+                yield checkOperation(operation, actual, condition.getCondition().getValue());
             }
             case LUMINOSITY -> {
                 LightSensorAvro data = (LightSensorAvro) state.getData();
                 int actual = data.getLuminosity();
-                yield checkOperation(operation, actual, expectedValue);
+                yield checkOperation(operation, actual, condition.getCondition().getValue());
             }
             case TEMPERATURE -> {
                 ClimateSensorAvro data = (ClimateSensorAvro) state.getData();
                 int actual = data.getTemperatureC();
-                yield checkOperation(operation, actual, expectedValue);
+                yield checkOperation(operation, actual, condition.getCondition().getValue());
             }
             case HUMIDITY -> {
                 ClimateSensorAvro data = (ClimateSensorAvro) state.getData();
                 int actual = data.getHumidity();
-                yield checkOperation(operation, actual, expectedValue);
+                yield checkOperation(operation, actual, condition.getCondition().getValue());
             }
             case CO2LEVEL -> {
                 ClimateSensorAvro data = (ClimateSensorAvro) state.getData();
                 int actual = data.getCo2Level();
-                yield checkOperation(operation, actual, expectedValue);
+                yield checkOperation(operation, actual, condition.getCondition().getValue());
             }
             case SWITCH -> {
                 SwitchSensorAvro data = (SwitchSensorAvro) state.getData();
                 int actual = data.getState() ? 1 : 0;
-                yield checkOperation(operation, actual, expectedValue);
+                yield checkOperation(operation, actual, condition.getCondition().getValue());
             }
         };
     }
 
-    private boolean checkOperation(ConditionOperationAvro operationType, Integer actual, Integer expected) {
-        if (actual == null || expected == null) {
-            return false;
-        }
-
+    private boolean checkOperation(ConditionOperationAvro operationType, Integer expected, Integer actual) {
         return switch (operationType) {
             case EQUALS -> actual.equals(expected);
-            case GREATER_THAN -> actual > expected;
-            case LOWER_THAN -> actual < expected;
+            case GREATER_THAN -> actual < expected;
+            case LOWER_THAN -> actual > expected;
         };
     }
 }
