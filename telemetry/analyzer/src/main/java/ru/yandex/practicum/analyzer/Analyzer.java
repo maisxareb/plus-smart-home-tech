@@ -24,6 +24,6 @@ public class Analyzer {
 
         snapshotProcessor.start();
 
-        log.info("Analyzer application started successfully");
+        log.info("Приложение-анализатор успешно запущено");
     }
 }

@@ -45,14 +45,14 @@ public class ScenarioService {
     @Transactional
     public void addScenario(Scenario scenario) {
         scenarioRepository.save(scenario);
-        log.info("Added scenario: {} for hub: {}", scenario.getName(), scenario.getHubId());
+        log.info("Добавлен сценарий: {} для хаба: {}", scenario.getName(), scenario.getHubId());
     }
 
     @Transactional
     public void removeScenario(String hubId, String scenarioName) {
         Optional<Scenario> scenario = scenarioRepository.findByHubIdAndName(hubId, scenarioName);
         scenario.ifPresent(scenarioRepository::delete);
-        log.info("Removed scenario: {} for hub: {}", scenarioName, hubId);
+        log.info("Удален сценарий: {} для хаба: {}", scenarioName, hubId);
     }
 
     @Transactional
@@ -62,12 +62,12 @@ public class ScenarioService {
         sensor.setHubId(hubId);
         sensor.setDeviceType(deviceType);
         sensorRepository.save(sensor);
-        log.info("Added device: {} of type: {} to hub: {}", deviceId, deviceType, hubId);
+        log.info("Добавлено устройство: {} типа: {} в хаб: {}", deviceId, deviceType, hubId);
     }
 
     @Transactional
     public void removeDeviceFromHub(String hubId, String deviceId) {
         sensorRepository.deleteByHubIdAndId(hubId, deviceId);
-        log.info("Removed device: {} from hub: {}", deviceId, hubId);
+        log.info("Удалено устройство: {} из хаба: {}", deviceId, hubId);
     }
 }

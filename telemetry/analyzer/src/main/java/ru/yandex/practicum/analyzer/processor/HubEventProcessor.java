@@ -27,12 +27,12 @@ public class HubEventProcessor implements Runnable {
 
     @Override
     public void run() {
-        log.info("Starting HubEventProcessor in separate thread...");
+        log.info("Запуск HubEventProcessor в отдельном потоке...");
 
         consumer = new KafkaConsumer<>(hubEventConsumerProperties);
         consumer.subscribe(Collections.singletonList("telemetry.hubs.v1"));
 
-        log.info("Subscribed to topic: telemetry.hubs.v1");
+        log.info("Подписан на топик: telemetry.hubs.v1");
 
         try {
             while (running) {
@@ -40,33 +40,33 @@ public class HubEventProcessor implements Runnable {
 
                 for (ConsumerRecord<String, HubEventAvro> record : records) {
                     try {
-                        log.debug("Processing hub event: key={}, offset={}, partition={}",
+                        log.debug("Обработка события хаба: key={}, offset={}, partition={}",
                                 record.key(), record.offset(), record.partition());
 
                         hubEventProcessingService.processHubEvent(record.value());
 
                     } catch (Exception e) {
-                        log.error("Error processing hub event: key={}, offset={}",
+                        log.error("Ошибка обработки события хаба: key={}, offset={}",
                                 record.key(), record.offset(), e);
                     }
                 }
 
                 if (!records.isEmpty()) {
                     consumer.commitSync();
-                    log.debug("Committed offsets for {} hub event records", records.count());
+                    log.debug("Зафиксированы оффсеты для {} записей событий хаба", records.count());
                 }
             }
         } catch (WakeupException e) {
-            log.info("HubEventProcessor wakeup called");
+            log.info("Вызов wakeup для HubEventProcessor");
         } catch (Exception e) {
-            log.error("Unexpected error in HubEventProcessor", e);
+            log.error("Неожиданная ошибка в HubEventProcessor", e);
         } finally {
             shutdown();
         }
     }
 
     public void shutdown() {
-        log.info("Shutting down HubEventProcessor...");
+        log.info("Остановка HubEventProcessor...");
         running = false;
         if (consumer != null) {
             consumer.wakeup();

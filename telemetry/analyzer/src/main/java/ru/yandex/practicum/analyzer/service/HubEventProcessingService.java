@@ -27,10 +27,10 @@ public class HubEventProcessingService {
                         handleScenarioAdded(hubId, scenarioAdded);
                 case ru.yandex.practicum.kafka.telemetry.event.ScenarioRemovedEventAvro scenarioRemoved ->
                         handleScenarioRemoved(hubId, scenarioRemoved);
-                default -> log.warn("Unknown hub event type for hub: {}", hubId);
+                default -> log.warn("Неизвестный тип события хаба для хаба: {}", hubId);
             }
         } catch (Exception e) {
-            log.error("Error processing hub event for hub: {}", hubId, e);
+            log.error("Ошибка обработки события хаба для хаба: {}", hubId, e);
         }
     }
 

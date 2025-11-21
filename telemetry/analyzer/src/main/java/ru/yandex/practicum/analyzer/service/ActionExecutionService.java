@@ -20,8 +20,14 @@ public class ActionExecutionService {
     private final HubRouterControllerGrpc.HubRouterControllerBlockingStub hubRouterStub;
 
     public void executeActions(String hubId, String scenarioName, List<DeviceActionProto> actions) {
+        log.info("Начало выполнения {} действий для сценария '{}' хаба {}",
+                actions.size(), scenarioName, hubId);
+
         for (DeviceActionProto action : actions) {
             try {
+                log.info("Отправка действия для устройства: {}, тип: {}, значение: {}",
+                        action.getSensorId(), action.getType(), action.getValue());
+
                 var request = DeviceActionRequest.newBuilder()
                         .setHubId(hubId)
                         .setScenarioName(scenarioName)
@@ -29,20 +35,22 @@ public class ActionExecutionService {
                         .build();
 
                 Empty response = hubRouterStub.handleDeviceAction(request);
-                log.info("Successfully executed action for device: {} in scenario: {} for hub: {}",
+                log.info("Успешно выполнено действие для устройства: {} в сценарии: {} для хаба: {}",
                         action.getSensorId(), scenarioName, hubId);
 
             } catch (StatusRuntimeException e) {
                 if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-                    log.error("Hub Router is unavailable for hub: {}", hubId);
+                    log.error("Hub Router недоступен для хаба: {}", hubId);
                 } else {
-                    log.error("Failed to execute action for device: {} in scenario: {} for hub: {}. Error: {}",
+                    log.error("Не удалось выполнить действие для устройства: {} в сценарии: {} для хаба: {}. Ошибка: {}",
                             action.getSensorId(), scenarioName, hubId, e.getStatus().getDescription());
                 }
             } catch (Exception e) {
-                log.error("Unexpected error executing action for device: {} in scenario: {} for hub: {}",
+                log.error("Неожиданная ошибка выполнения действия для устройства: {} в сценарии: {} для хаба: {}",
                         action.getSensorId(), scenarioName, hubId, e);
             }
         }
+
+        log.info("Завершение выполнения действий для сценария '{}'", scenarioName);
     }
 }

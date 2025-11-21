@@ -26,12 +26,12 @@ public class SnapshotProcessor {
     private KafkaConsumer<String, SensorsSnapshotAvro> consumer;
 
     public void start() {
-        log.info("Starting SnapshotProcessor...");
+        log.info("Запуск SnapshotProcessor...");
 
         consumer = new KafkaConsumer<>(snapshotConsumerProperties);
         consumer.subscribe(Collections.singletonList("telemetry.snapshots.v1"));
 
-        log.info("Subscribed to topic: telemetry.snapshots.v1");
+        log.info("Подписан на топик: telemetry.snapshots.v1");
 
         try {
             while (running) {
@@ -39,33 +39,33 @@ public class SnapshotProcessor {
 
                 for (ConsumerRecord<String, SensorsSnapshotAvro> record : records) {
                     try {
-                        log.debug("Processing snapshot: key={}, offset={}, partition={}",
+                        log.debug("Обработка снапшота: key={}, offset={}, partition={}",
                                 record.key(), record.offset(), record.partition());
 
                         snapshotProcessingService.processSnapshot(record.value());
 
                     } catch (Exception e) {
-                        log.error("Error processing snapshot: key={}, offset={}",
+                        log.error("Ошибка обработки снапшота: key={}, offset={}",
                                 record.key(), record.offset(), e);
                     }
                 }
 
                 if (!records.isEmpty()) {
                     consumer.commitSync();
-                    log.debug("Committed offsets for {} records", records.count());
+                    log.debug("Зафиксированы оффсеты для {} записей", records.count());
                 }
             }
         } catch (WakeupException e) {
-            log.info("SnapshotProcessor wakeup called");
+            log.info("Вызов wakeup для SnapshotProcessor");
         } catch (Exception e) {
-            log.error("Unexpected error in SnapshotProcessor", e);
+            log.error("Неожиданная ошибка в SnapshotProcessor", e);
         } finally {
             shutdown();
         }
     }
 
     public void shutdown() {
-        log.info("Shutting down SnapshotProcessor...");
+        log.info("Остановка SnapshotProcessor...");
         running = false;
         if (consumer != null) {
             consumer.wakeup();
