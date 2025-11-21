@@ -11,6 +11,7 @@ import ru.yandex.practicum.analyzer.processor.SnapshotProcessor;
 @Slf4j
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@EnableGrpcClients
 public class Analyzer {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(Analyzer.class, args);
