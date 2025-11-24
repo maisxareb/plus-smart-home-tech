@@ -1,19 +1,19 @@
-spring:
-  application:
-    name: collector
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
-      properties:
-        spring.json.add.type.headers: false
-
 server:
   port: 8080
 
-logging:
-  level:
-    ru.yandex.practicum.collector: DEBUG
-    org.apache.kafka: WARN
-    org.springframework.kafka: DEBUG
+spring:
+  grpc:
+    server:
+      port: 9090
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.practicum.avro.serializer.GeneralAvroSerializer
+
+    topics:
+      hub-topic-name: telemetry.hubs.v1
+      sensor-topic-name: telemetry.sensors.v1
+      snapshots-topic-name: telemetry.snapshots.v1

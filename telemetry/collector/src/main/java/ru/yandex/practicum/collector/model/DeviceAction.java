@@ -1,20 +1,14 @@
 package ru.yandex.practicum.collector.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 public class DeviceAction {
-    @NotBlank
     private String sensorId;
-
-    @NotNull
     private ActionType type;
-
-    private Integer value;
+    private Integer value = null;
 }

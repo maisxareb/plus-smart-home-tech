@@ -1,23 +1,15 @@
 package ru.yandex.practicum.collector.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
-public class ScenarioCondition {
-    @NotBlank
+@ToString(callSuper = true)
+public class ScenarioCondition{
     private String sensorId;
-
-    @NotNull
     private ConditionType type;
-
-    @NotNull
     private ConditionOperation operation;
-
-    private Integer value;
+    private Integer value = null;
 }
