@@ -29,7 +29,7 @@ public class HubEventTxService {
     }
 
     @Transactional
-    public void saveScenario(HubEventAvro event, ScenarioAddedEventAvro added) {
+    public void saveScenario (HubEventAvro event, ScenarioAddedEventAvro added) {
         Scenario newScenario = Scenario.builder()
                 .hubId(event.getHubId())
                 .name(added.getName())
