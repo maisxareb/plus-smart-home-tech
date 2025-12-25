@@ -1,0 +1,24 @@
+package ru.practicum.interaction_api.warehouse.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class AddressDto {
+    @NotBlank
+    private String country;
+
+    @NotBlank
+    private String city;
+
+    @NotBlank
+    private String street;
+
+    @NotBlank
+    private String house;
+
+    @NotBlank
+    private String flat;
+}

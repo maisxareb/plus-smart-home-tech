@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: warehouse
+  config:
+    import: "configserver:"
+
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        serviceId: CONFIG-SERVER
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

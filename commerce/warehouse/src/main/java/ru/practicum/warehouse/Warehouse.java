@@ -1,0 +1,37 @@
+package ru.practicum.warehouse;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import ru.practicum.interaction_api.warehouse.dto.AddressDto;
+
+import java.security.SecureRandom;
+import java.util.Random;
+
+@SpringBootApplication
+@EnableFeignClients(basePackages = "ru.practicum.interaction_api")
+@EntityScan({
+        "ru.practicum.warehouse.model",
+        "ru.practicum.shopping_store.model"
+})
+public class Warehouse {
+
+    private static final String[] ADDRESSES = {"ADDRESS_1", "ADDRESS_2"};
+
+    public static AddressDto getRandomAddress() {
+        String current = ADDRESSES[Random.from(new SecureRandom()).nextInt(0, ADDRESSES.length)];
+
+        return AddressDto.builder()
+                .country(current)
+                .city(current)
+                .street(current)
+                .house(current)
+                .flat(current)
+                .build();
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Warehouse.class, args);
+    }
+}

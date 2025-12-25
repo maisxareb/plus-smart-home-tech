@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 0
 
 spring:
   kafka:
@@ -14,7 +14,7 @@ spring:
       sensor-event-value-deserializer: ru.practicum.avro.deserializer.SensorEventDeserializer
       sensor-event-group-id: sensor-events-group
       snapshot-value-deserializer: ru.practicum.avro.deserializer.SensorsSnapshotDeserializer
-      snapshot-group-id: snapshots-group
+      snapshot-group-id: snapshots-aggregator-group
 
     topics:
       hub-topic-name: telemetry.hubs.v1
