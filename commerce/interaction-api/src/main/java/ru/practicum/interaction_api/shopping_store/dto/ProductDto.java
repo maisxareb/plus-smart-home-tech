@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 public class ProductDto {
@@ -29,5 +31,5 @@ public class ProductDto {
 
     @NotNull
     @Min(1)
-    private Double price;
+    private BigDecimal price;
 }

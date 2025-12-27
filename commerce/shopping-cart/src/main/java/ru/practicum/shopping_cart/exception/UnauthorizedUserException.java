@@ -1,4 +1,4 @@
-package ru.practicum.shopping_cart.expection;
+package ru.practicum.shopping_cart.exception;
 
 public class UnauthorizedUserException extends RuntimeException {
     public UnauthorizedUserException(String message) {

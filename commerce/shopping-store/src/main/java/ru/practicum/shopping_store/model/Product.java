@@ -3,6 +3,7 @@ package ru.practicum.shopping_store.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "shopping_store")
@@ -38,6 +39,6 @@ public class Product {
     @Column(name = "product_category", nullable = false)
     private ProductCategory productCategory;
 
-    @Column(nullable = false)
-    private Double price;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal price;
 }
