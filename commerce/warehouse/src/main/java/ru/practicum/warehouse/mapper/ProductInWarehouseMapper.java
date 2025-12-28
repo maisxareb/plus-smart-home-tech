@@ -3,7 +3,7 @@ package ru.practicum.warehouse.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import ru.practicum.interaction_api.warehouse.dto.ProductInWarehouseDto;
+import ru.practicum.interaction.api.warehouse.dto.ProductInWarehouseDto;
 import ru.practicum.warehouse.model.NewProductInWarehouseRequest;
 import ru.practicum.warehouse.model.ProductInWarehouse;
 
