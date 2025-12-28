@@ -10,7 +10,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = "ru.practicum.interaction_api")
+@EnableFeignClients(basePackages = "ru.practicum.interaction.api")
 @EntityScan({
         "ru.practicum.warehouse.model",
         "ru.practicum.shopping_store.model"
