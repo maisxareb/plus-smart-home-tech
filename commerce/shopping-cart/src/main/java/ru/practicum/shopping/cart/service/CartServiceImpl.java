@@ -13,7 +13,7 @@ import ru.practicum.shopping.cart.model.Cart;
 import ru.practicum.shopping.cart.model.CartItem;
 import ru.practicum.shopping.cart.model.CartStatus;
 import ru.practicum.shopping.cart.model.UpdateProductQuantityRequest;
-import ru.practicum.shopping_cart.model.*;
+import ru.practicum.shopping.cart.model.*;
 import ru.practicum.shopping.cart.repository.CartRepository;
 
 import java.util.*;

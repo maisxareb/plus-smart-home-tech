@@ -12,7 +12,7 @@ import ru.practicum.shopping.store.model.Product;
 import ru.practicum.shopping.store.model.ProductCategory;
 import ru.practicum.shopping.store.model.ProductState;
 import ru.practicum.shopping.store.model.UpdateStockLevelRequest;
-import ru.practicum.shopping_store.model.*;
+import ru.practicum.shopping.store.model.*;
 import ru.practicum.shopping.store.repository.ProductRepository;
 
 @Slf4j
