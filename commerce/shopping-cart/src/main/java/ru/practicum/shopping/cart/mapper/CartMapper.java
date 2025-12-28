@@ -5,14 +5,22 @@ import ru.practicum.interaction.api.shopping.cart.dto.ShoppingCartDto;
 import ru.practicum.shopping.cart.model.Cart;
 import ru.practicum.shopping.cart.model.CartItem;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public abstract class CartMapper {
 
-    public abstract ShoppingCartDto toDto(Cart shoppingCart);
+    public ShoppingCartDto toDto(Cart shoppingCart) {
+        if (shoppingCart == null) {
+            return null;
+        }
+
+        return ShoppingCartDto.builder()
+                .shoppingCartId(shoppingCart.getShoppingCartId())
+                .products(itemsToMap(shoppingCart.getItems()))
+                .build();
+    }
 
     public abstract Cart toEntity(ShoppingCartDto shoppingCartDto);
 
@@ -21,8 +29,8 @@ public abstract class CartMapper {
     public abstract void updateEntityFromDto(ShoppingCartDto dto, @MappingTarget Cart entity);
 
     protected Map<String, Integer> itemsToMap(List<CartItem> items) {
-        if (items == null) {
-            return null;
+        if (items == null || items.isEmpty()) {
+            return Collections.emptyMap();
         }
         return items.stream()
                 .collect(Collectors.toMap(
@@ -32,8 +40,8 @@ public abstract class CartMapper {
     }
 
     protected List<CartItem> mapToItems(Map<String, Integer> products) {
-        if (products == null) {
-            return null;
+        if (products == null || products.isEmpty()) {
+            return Collections.emptyList();
         }
         return products.entrySet().stream()
                 .map(entry -> {
