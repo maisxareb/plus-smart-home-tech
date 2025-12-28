@@ -10,21 +10,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
-public interface CartMapper {
+public abstract class CartMapper {
 
-    @Mapping(target = "products", source = "items", qualifiedByName = "itemsToMap")
-    ShoppingCartDto toDto(Cart shoppingCart);
+    public abstract ShoppingCartDto toDto(Cart shoppingCart);
 
-    @Mapping(target = "items", source = "products", qualifiedByName = "mapToItems")
-    Cart toEntity(ShoppingCartDto shoppingCartDto);
+    public abstract Cart toEntity(ShoppingCartDto shoppingCartDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "shoppingCartId", ignore = true)
-    @Mapping(target = "items", source = "products", qualifiedByName = "mapToItems")
-    void updateEntityFromDto(ShoppingCartDto dto, @MappingTarget Cart entity);
+    public abstract void updateEntityFromDto(ShoppingCartDto dto, @MappingTarget Cart entity);
 
-    @Named("itemsToMap")
-    default Map<String, Integer> itemsToMap(List<CartItem> items) {
+    protected Map<String, Integer> itemsToMap(List<CartItem> items) {
         if (items == null) {
             return null;
         }
@@ -35,8 +31,7 @@ public interface CartMapper {
                 ));
     }
 
-    @Named("mapToItems")
-    default List<CartItem> mapToItems(Map<String, Integer> products) {
+    protected List<CartItem> mapToItems(Map<String, Integer> products) {
         if (products == null) {
             return null;
         }

@@ -4,27 +4,27 @@ import org.mapstruct.*;
 import ru.practicum.interaction.api.shopping.store.dto.ProductDto;
 import ru.practicum.shopping.store.model.Product;
 
-@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@Mapper(
+        componentModel = "spring",
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
+)
 public interface ProductMapper {
 
-    @Mapping(target = "quantityState", expression = "java(dto.shopping_store.ru.practicum.interaction.api.QuantityState.valueOf(product.getQuantityState().name()))")
-    @Mapping(target = "productState", expression = "java(dto.shopping_store.ru.practicum.interaction.api.ProductState.valueOf(product.getProductState().name()))")
-    @Mapping(target = "productCategory", expression = "java(dto.shopping_store.ru.practicum.interaction.api.ProductCategory.valueOf(product.getProductCategory().name()))")
+    @Mapping(target = "quantityState", source = "quantityState")
+    @Mapping(target = "productState", source = "productState")
+    @Mapping(target = "productCategory", source = "productCategory")
     ProductDto toDto(Product product);
 
-    @Mapping(target = "quantityState", expression = "java(model.ru.practicum.shopping.store.QuantityState.valueOf(dto.getQuantityState().name()))")
-    @Mapping(target = "productState", expression = "java(model.ru.practicum.shopping.store.ProductState.valueOf(dto.getProductState().name()))")
-    @Mapping(target = "productCategory", expression = "java(model.ru.practicum.shopping.store.ProductCategory.valueOf(dto.getProductCategory().name()))")
+    @Mapping(target = "quantityState", source = "quantityState")
+    @Mapping(target = "productState", source = "productState")
+    @Mapping(target = "productCategory", source = "productCategory")
     Product toEntity(ProductDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "productId", ignore = true)
-    @Mapping(target = "quantityState", expression = "java(newData.getQuantityState() != null ? " +
-            "model.ru.practicum.shopping.store.QuantityState.valueOf(newData.getQuantityState().name()) : null)")
-    @Mapping(target = "productState", expression = "java(newData.getProductState() != null ? " +
-            "model.ru.practicum.shopping.store.ProductState.valueOf(newData.getProductState().name()) : null)")
-    @Mapping(target = "productCategory", expression = "java(newData.getProductCategory() != null ? " +
-            "model.ru.practicum.shopping.store.ProductCategory.valueOf(newData.getProductCategory().name()) : null)")
+    @Mapping(target = "quantityState", source = "quantityState")
+    @Mapping(target = "productState", source = "productState")
+    @Mapping(target = "productCategory", source = "productCategory")
     void updateEntityFromDto(ProductDto newData, @MappingTarget Product entity);
 
     default Product updateFields(Product oldProduct, ProductDto newData) {
