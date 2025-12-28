@@ -10,7 +10,7 @@ import ru.practicum.interaction.api.shopping.store.dto.ProductDto;
 import ru.practicum.shopping.store.model.ProductCategory;
 import ru.practicum.shopping.store.model.QuantityState;
 import ru.practicum.shopping.store.model.UpdateStockLevelRequest;
-import ru.practicum.shopping_store.model.*;
+import ru.practicum.shopping.store.model.*;
 import ru.practicum.shopping.store.service.ProductService;
 
 
