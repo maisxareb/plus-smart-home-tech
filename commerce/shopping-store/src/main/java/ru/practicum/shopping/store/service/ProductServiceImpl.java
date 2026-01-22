@@ -6,14 +6,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.interaction.api.shopping.store.dto.ProductDto;
-import ru.practicum.shopping.store.exception.ProductNotFoundException;
+import ru.practicum.interaction.api.shopping.store.exception.ProductNotFoundException;
 import ru.practicum.shopping.store.mapper.ProductMapper;
 import ru.practicum.shopping.store.model.Product;
 import ru.practicum.shopping.store.model.ProductCategory;
 import ru.practicum.shopping.store.model.ProductState;
 import ru.practicum.shopping.store.model.UpdateStockLevelRequest;
-import ru.practicum.shopping.store.model.*;
 import ru.practicum.shopping.store.repository.ProductRepository;
+
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -21,40 +22,35 @@ import ru.practicum.shopping.store.repository.ProductRepository;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
-    private final ProductMapper mapper;
+    private final ProductMapper productMapper;
 
     @Override
     public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
         Page<Product> products = repository.findAllByProductCategory(category, pageable);
-        return products.map(mapper::toDto);
+        return products.map(productMapper::toDto);
     }
 
     @Override
-    public ProductDto getProductById(String productId) {
-        Product product = productExists(productId);
-        return mapper.toDto(product);
+    public ProductDto getProductById(UUID productId) {
+        return productMapper.toDto(productExists(productId));
     }
 
     @Override
     public ProductDto createProduct(ProductDto productDto) {
-        Product newProduct = mapper.toEntity(productDto);
-        Product savedProduct = repository.save(newProduct);
-        return mapper.toDto(savedProduct);
+        Product newProduct = productMapper.toEntity(productDto);
+        return productMapper.toDto(repository.save(newProduct));
     }
 
     @Override
     public ProductDto updateProduct(ProductDto productDto) {
         Product oldProduct = productExists(productDto.getProductId());
-
-        mapper.updateEntityFromDto(productDto, oldProduct);
-        Product updatedProduct = repository.save(oldProduct);
-        return mapper.toDto(updatedProduct);
+        productMapper.updateEntityFromDto(productDto, oldProduct);
+        return productMapper.toDto(repository.save(oldProduct));
     }
 
     @Override
-    public Boolean removeProduct(String productId) {
+    public Boolean removeProduct(UUID productId) {
         Product product = productExists(productId);
-
         product.setProductState(ProductState.DEACTIVATE);
         repository.save(product);
         return true;
@@ -63,13 +59,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Boolean setQuantity(UpdateStockLevelRequest request) {
         Product product = productExists(request.getProductId());
-
-        product.setQuantityState(request.getQuantityState());
-        repository.save(product);
         return true;
     }
 
-    private Product productExists(String productId) {
+    private Product productExists(UUID productId) {
         try {
             return repository.findById(productId)
                     .orElseThrow(() -> new ProductNotFoundException("Товар с id " + productId + " не найден!"));

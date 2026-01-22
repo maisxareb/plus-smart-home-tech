@@ -28,7 +28,7 @@ public abstract class CartMapper {
     @Mapping(target = "shoppingCartId", ignore = true)
     public abstract void updateEntityFromDto(ShoppingCartDto dto, @MappingTarget Cart entity);
 
-    protected Map<String, Integer> itemsToMap(List<CartItem> items) {
+    protected Map<UUID, Integer> itemsToMap(List<CartItem> items) {
         if (items == null || items.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -39,7 +39,7 @@ public abstract class CartMapper {
                 ));
     }
 
-    protected List<CartItem> mapToItems(Map<String, Integer> products) {
+    protected List<CartItem> mapToItems(Map<UUID, Integer> products) {
         if (products == null || products.isEmpty()) {
             return Collections.emptyList();
         }

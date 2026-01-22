@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "shopping_cart")
@@ -17,7 +18,7 @@ public class Cart {
 
     @Id
     @UuidGenerator
-    private String shoppingCartId;
+    private UUID shoppingCartId;
 
     @OneToMany(mappedBy = "shoppingCart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items;

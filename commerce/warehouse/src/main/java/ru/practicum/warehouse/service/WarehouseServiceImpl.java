@@ -3,39 +3,45 @@ package ru.practicum.warehouse.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.interaction.api.delivery.client.DeliveryClient;
+import ru.practicum.interaction.api.order.client.OrderClient;
 import ru.practicum.interaction.api.shopping.cart.dto.ShoppingCartDto;
-import ru.practicum.interaction.api.warehouse.dto.AddressDto;
-import ru.practicum.interaction.api.warehouse.dto.BookedProductsDto;
-import ru.practicum.interaction.api.warehouse.dto.ProductInWarehouseDto;
-import ru.practicum.interaction.api.warehouse.dto.DimensionDto;
+import ru.practicum.interaction.api.warehouse.dto.*;
+import ru.practicum.interaction.api.warehouse.exception.ProductLowQuantityInWarehouse;
 import ru.practicum.warehouse.Warehouse;
-import ru.practicum.warehouse.exception.InsufficientStockException;
-import ru.practicum.warehouse.exception.ProductNotFoundException;
-import ru.practicum.warehouse.exception.ProductAlreadyExistsException;
-import ru.practicum.warehouse.model.AddProductToWarehouseRequest;
-import ru.practicum.warehouse.model.NewProductInWarehouseRequest;
-import ru.practicum.warehouse.model.ProductInWarehouse;
+import ru.practicum.warehouse.exception.*;
+import ru.practicum.warehouse.mapper.OrderBookingMapper;
 import ru.practicum.warehouse.mapper.ProductInWarehouseMapper;
+import ru.practicum.warehouse.model.*;
+import ru.practicum.warehouse.repository.OrderBookingRepository;
 import ru.practicum.warehouse.repository.WarehouseRepository;
+
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WarehouseServiceImpl implements WarehouseService {
 
-    private final WarehouseRepository repository;
-    private final ProductInWarehouseMapper mapper;
+    private final WarehouseRepository warehouseRepository;
+    private final OrderBookingRepository orderBookingRepository;
+    private final OrderBookingMapper orderBookingMapper;
+    private final ProductInWarehouseMapper productInWarehouseMapper;
+
+    private final OrderClient orderClient;
+    private final DeliveryClient deliveryClient;
 
     @Override
     public ProductInWarehouseDto addNewProduct(NewProductInWarehouseRequest newProduct) {
         if (isProductInWarehouse(newProduct.getProductId())) {
-            throw new ProductAlreadyExistsException("Продукт с id " + newProduct.getProductId() + " уже добавлен на склад!");
+            throw new SpecifiedProductAlreadyInWarehouseException("Продукт с id " + newProduct.getProductId() + " уже добавлен на склад!");
         }
 
-        ProductInWarehouse entity = mapper.toEntity(newProduct);
-        ProductInWarehouse savedEntity = repository.save(entity);
-
-        return mapper.toDto(savedEntity);
+        ProductInWarehouse entity = productInWarehouseMapper.toEntity(newProduct);
+        ProductInWarehouse savedEntity = warehouseRepository.save(entity);
+        return productInWarehouseMapper.toDto(savedEntity);
     }
 
     @Override
@@ -43,10 +49,10 @@ public class WarehouseServiceImpl implements WarehouseService {
         BookedProductsDto bookedProductsDto = BookedProductsDto.builder().build();
 
         shoppingCart.getProducts().forEach((productId, quantity) -> {
-            ProductInWarehouse productInWarehouse = productInWarehouseExists(productId);
+            ProductInWarehouse productInWarehouse = getProductInWarehouse(productId);
 
             if (quantity > productInWarehouse.getQuantity()) {
-                throw new InsufficientStockException("Товара с id " + productId + " в корзине больше, чем доступно на складе!");
+                throw new ProductInShoppingCartLowQuantityInWarehouse("Товара с id " + productId + " в корзине больше, чем доступно на складе!");
             }
 
             bookedProductsDto.setDeliveryWeight(bookedProductsDto.getDeliveryWeight() + productInWarehouse.getWeight());
@@ -58,10 +64,12 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public void acceptProduct(AddProductToWarehouseRequest request) {
-        ProductInWarehouse productInWarehouse = productInWarehouseExists(request.getProductId());
+        ProductInWarehouse productInWarehouse = getProductInWarehouse(request.getProductId());
         productInWarehouse.setQuantity(productInWarehouse.getQuantity() + request.getQuantity());
 
-        repository.save(productInWarehouse);
+        warehouseRepository.save(productInWarehouse);
+
+        log.info("Продукт с id {} в количестве {} принят на склад!", productInWarehouse.getProductId(), productInWarehouse.getQuantity());
     }
 
     @Override
@@ -69,8 +77,88 @@ public class WarehouseServiceImpl implements WarehouseService {
         return Warehouse.getRandomAddress();
     }
 
-    private boolean isProductInWarehouse(String productId) {
-        return repository.existsById(productId);
+    @Override
+    public void shippedProducts(ShippedToDeliveryRequest request) {
+        OrderBooking orderBooking = orderBookingRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new NotOrderBookingFound("Забронированные товары для заказа с id " + request.getOrderId() + " не найдены!"));
+
+        orderBooking.setDeliveryId(request.getDeliveryId());
+        orderBookingRepository.save(orderBooking);
+
+        log.info("Товары для заказа с id {} переданы в доставку!", request.getOrderId());
+    }
+
+    @Override
+    @Transactional
+    public void returnProducts(Map<UUID, Integer> products) {
+        for (Map.Entry<UUID, Integer> entry : products.entrySet()) {
+            UUID productId = entry.getKey();
+            Integer quantity = entry.getValue();
+
+            try {
+                ProductInWarehouse product = getProductInWarehouse(productId);
+
+                product.setQuantity(product.getQuantity() + quantity);
+                warehouseRepository.save(product);
+
+            } catch (ProductInWarehouseNotFoundException e) {
+                log.warn("Продукт с id {} не найден на складе, пропускаем!", productId);
+            }
+        }
+
+        log.info("Товары успешно вернулись на склад!");
+    }
+
+    @Override
+    @Transactional
+    public BookedProductsDto assemblyProducts(AssemblyProductsForOrderRequest request) {
+        Double deliveryWeight = 0.0;
+        double deliveryVolume = 0.0;
+        boolean fragile = false;
+
+        for (Map.Entry<UUID, Integer> entry : request.getProducts().entrySet()) {
+            UUID productId = entry.getKey();
+            Integer quantity = entry.getValue();
+
+            try {
+                ProductInWarehouse product = getProductInWarehouse(productId);
+
+                if (product.getQuantity() < quantity) {
+                    throw new ProductLowQuantityInWarehouse("Товара с id " + productId + " на складе меньше, чем запрашивается!");
+                }
+
+                product.setQuantity(product.getQuantity() - quantity);
+                warehouseRepository.save(product);
+
+                log.info("Остаток товара с id: {} на складе: {}.", productId, product.getQuantity());
+
+                deliveryWeight += product.getWeight();
+                deliveryVolume += calculateVolume(product);
+
+                if (product.getFragile()) {
+                    fragile = true;
+                }
+
+            } catch (ProductInWarehouseNotFoundException e) {
+                throw new SpecifiedProductAlreadyInWarehouseException("Товар с id " + productId + " не найден на складе!");
+            }
+        }
+
+        OrderBooking newOrderBooking = OrderBooking.builder()
+                .products(request.getProducts())
+                .deliveryWeight(deliveryWeight)
+                .deliveryVolume(deliveryVolume)
+                .fragile(fragile)
+                .build();
+
+        orderClient.assemblyOrder(request.getOrderId());
+
+        OrderBooking savedOrderBooking = orderBookingRepository.save(newOrderBooking);
+        return orderBookingMapper.toDto(savedOrderBooking);
+    }
+
+    private boolean isProductInWarehouse(UUID productId) {
+        return warehouseRepository.existsById(productId);
     }
 
     private Double calculateVolume(ProductInWarehouse product) {
@@ -78,8 +166,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         return dimension.getHeight() * dimension.getDepth() * dimension.getWidth();
     }
 
-    private ProductInWarehouse productInWarehouseExists(String productId) {
-        return repository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Продукт с id " + productId + " не найден на складе!"));
+    private ProductInWarehouse getProductInWarehouse(UUID productId) {
+        return warehouseRepository.findById(productId)
+                .orElseThrow(() -> new ProductInWarehouseNotFoundException("Продукт с id " + productId + " не найден на складе!"));
     }
 }

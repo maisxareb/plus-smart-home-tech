@@ -1,16 +1,13 @@
 package ru.practicum.warehouse.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.*;
 import ru.practicum.interaction.api.warehouse.dto.ProductInWarehouseDto;
 import ru.practicum.warehouse.model.NewProductInWarehouseRequest;
 import ru.practicum.warehouse.model.ProductInWarehouse;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductInWarehouseMapper {
-
-    ProductInWarehouseMapper INSTANCE = Mappers.getMapper(ProductInWarehouseMapper.class);
 
     @Mapping(target = "productId", source = "productId")
     @Mapping(target = "fragile", source = "fragile")

@@ -13,7 +13,7 @@ import java.util.Random;
 @EnableFeignClients(basePackages = "ru.practicum.interaction.api")
 @EntityScan({
         "ru.practicum.warehouse.model",
-        "ru.practicum.shopping_store.model"
+        "ru.practicum.shopping.store.model"
 })
 public class Warehouse {
 
