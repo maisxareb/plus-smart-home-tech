@@ -23,24 +23,22 @@ public class Delivery {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name="country", column=@Column(name="from_country")),
-            @AttributeOverride(name="city", column=@Column(name="from_city")),
-            @AttributeOverride(name="street", column=@Column(name="from_street")),
-            @AttributeOverride(name="house", column=@Column(name="from_house")),
+            @AttributeOverride(name="country", column=@Column(name="from_country", nullable = false)),
+            @AttributeOverride(name="city", column=@Column(name="from_city", nullable = false)),
+            @AttributeOverride(name="street", column=@Column(name="from_street", nullable = false)),
+            @AttributeOverride(name="house", column=@Column(name="from_house", nullable = false)),
             @AttributeOverride(name="flat", column=@Column(name="from_flat"))
     })
-    @Column(name = "from_address", nullable = false)
     private DeliveryAddress fromAddress;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name="country", column=@Column(name="to_country")),
-            @AttributeOverride(name="city", column=@Column(name="to_city")),
-            @AttributeOverride(name="street", column=@Column(name="to_street")),
-            @AttributeOverride(name="house", column=@Column(name="to_house")),
+            @AttributeOverride(name="country", column=@Column(name="to_country", nullable = false)),
+            @AttributeOverride(name="city", column=@Column(name="to_city", nullable = false)),
+            @AttributeOverride(name="street", column=@Column(name="to_street", nullable = false)),
+            @AttributeOverride(name="house", column=@Column(name="to_house", nullable = false)),
             @AttributeOverride(name="flat", column=@Column(name="to_flat"))
     })
-    @Column(name = "to_address", nullable = false)
     private DeliveryAddress toAddress;
 
     @Column(name = "order_id", nullable = false)

@@ -4,7 +4,7 @@ import org.mapstruct.*;
 import ru.practicum.interaction.api.warehouse.dto.BookedProductsDto;
 import ru.practicum.warehouse.model.OrderBooking;
 
-@Mapper(componentModel = "spring",
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_DEFAULT)
 public interface OrderBookingMapper {

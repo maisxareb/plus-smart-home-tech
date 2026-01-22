@@ -5,7 +5,7 @@ import ru.practicum.interaction.api.order.dto.OrderDto;
 import ru.practicum.order.model.Order;
 
 @Mapper(
-        componentModel = "spring",
+        componentModel = MappingConstants.ComponentModel.SPRING,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.delivery.service.DeliveryService;
 import ru.practicum.interaction.api.delivery.dto.DeliveryDto;
+import ru.practicum.interaction.api.delivery.dto.DeliveryOperationRequest;
 import ru.practicum.interaction.api.order.dto.OrderDto;
 
 import java.math.BigDecimal;
@@ -25,20 +26,20 @@ public class DeliveryController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/successful")
-    public void successfulDelivery(@RequestBody UUID deliveryId) {
-        service.successfulDelivery(deliveryId);
+    public void successfulDelivery(@RequestBody @Valid DeliveryOperationRequest request) {
+        service.successfulDelivery(request.getDeliveryId());
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/picked")
-    public void pickedDelivery(@RequestBody UUID deliveryId) {
-        service.pickedDelivery(deliveryId);
+    public void pickedDelivery(@RequestBody @Valid DeliveryOperationRequest request) {
+        service.pickedDelivery(request.getDeliveryId());
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/failed")
-    public void failedDelivery(@RequestBody UUID deliveryId) {
-        service.failedDelivery(deliveryId);
+    public void failedDelivery(@RequestBody @Valid DeliveryOperationRequest request) {
+        service.failedDelivery(request.getDeliveryId());
     }
 
     @PostMapping("/cost")

@@ -4,7 +4,7 @@ import org.mapstruct.*;
 import ru.practicum.interaction.api.shopping.store.dto.ProductDto;
 import ru.practicum.shopping.store.model.Product;
 
-@Mapper(componentModel = "spring",
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductMapper {
 

@@ -31,15 +31,23 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final OrderClient orderClient;
     private final WarehouseClient warehouseClient;
 
-    private final BigDecimal BASE_DELIVERY_COST = BigDecimal.valueOf(5.0);
-    private final BigDecimal FRAGILE_RATIO = BigDecimal.valueOf(0.2);
-    private final BigDecimal WEIGHT_RATIO = BigDecimal.valueOf(0.3);
-    private final BigDecimal VOLUME_RATIO = BigDecimal.valueOf(0.2);
-    private final BigDecimal ADDRESS_RATIO = BigDecimal.valueOf(0.2);
+    private static final BigDecimal BASE_DELIVERY_COST = BigDecimal.valueOf(5.0);
+    private static final BigDecimal FRAGILE_RATIO = BigDecimal.valueOf(0.2);
+    private static final BigDecimal WEIGHT_RATIO = BigDecimal.valueOf(0.3);
+    private static final BigDecimal VOLUME_RATIO = BigDecimal.valueOf(0.2);
+    private static final BigDecimal ADDRESS_RATIO = BigDecimal.valueOf(0.2);
 
     @Override
     @Transactional
     public DeliveryDto createDelivery(DeliveryDto deliveryDto) {
+        if (deliveryDto.getDeliveryId() != null && repository.existsById(deliveryDto.getDeliveryId())) {
+            throw new IllegalArgumentException("Delivery with id " + deliveryDto.getDeliveryId() + " already exists");
+        }
+
+        repository.findByOrderId(deliveryDto.getOrderId()).ifPresent(existingDelivery -> {
+            throw new IllegalArgumentException("Delivery for order " + deliveryDto.getOrderId() + " already exists");
+        });
+
         Delivery delivery = deliveryMapper.toEntity(deliveryDto);
         return deliveryMapper.toDto(repository.save(delivery));
     }
@@ -105,31 +113,43 @@ public class DeliveryServiceImpl implements DeliveryService {
     private boolean isAddressContains(DeliveryAddress address, String substring) {
         if (address == null || substring == null) return false;
 
-        return (address.getCountry().contains(substring)
-                || address.getCity().contains(substring)
-                || address.getStreet().contains(substring)
-                || address.getHouse().contains(substring)
-                || address.getFlat().contains(substring));
+        return (address.getCountry() != null && address.getCountry().contains(substring))
+                || (address.getCity() != null && address.getCity().contains(substring))
+                || (address.getStreet() != null && address.getStreet().contains(substring))
+                || (address.getHouse() != null && address.getHouse().contains(substring))
+                || (address.getFlat() != null && address.getFlat().contains(substring));
     }
 
     private BigDecimal calculateDelivery(Delivery delivery, OrderDto order) {
         BigDecimal deliveryPrice = BASE_DELIVERY_COST;
 
-        if (isAddressContains(delivery.getFromAddress(), "ADDRESS_1")) {
-            deliveryPrice = deliveryPrice.multiply(BigDecimal.valueOf(1)).add(BASE_DELIVERY_COST);
-        }
-        else if (isAddressContains(delivery.getFromAddress(), "ADDRESS_2")) {
-            deliveryPrice = deliveryPrice.multiply(BigDecimal.valueOf(2)).add(BASE_DELIVERY_COST);
+        DeliveryAddress fromAddress = delivery.getFromAddress();
+        if (fromAddress != null) {
+            if (isAddressContains(fromAddress, "ADDRESS_1")) {
+                deliveryPrice = deliveryPrice.add(BASE_DELIVERY_COST); // Было multiply(BigDecimal.ONE) - бессмысленно
+            } else if (isAddressContains(fromAddress, "ADDRESS_2")) {
+                deliveryPrice = deliveryPrice.multiply(BigDecimal.valueOf(2)).add(BASE_DELIVERY_COST);
+            }
         }
 
-        if (order.getFragile()) {
+        if (order.getFragile() != null && order.getFragile()) {
             deliveryPrice = deliveryPrice.add(deliveryPrice.multiply(FRAGILE_RATIO));
         }
 
-        deliveryPrice = deliveryPrice.add(BigDecimal.valueOf(order.getDeliveryWeight()).multiply(WEIGHT_RATIO));
-        deliveryPrice = deliveryPrice.add(BigDecimal.valueOf(order.getDeliveryVolume()).multiply(VOLUME_RATIO));
+        if (order.getDeliveryWeight() != null) {
+            deliveryPrice = deliveryPrice.add(
+                    BigDecimal.valueOf(order.getDeliveryWeight()).multiply(WEIGHT_RATIO));
+        }
 
-        if (!delivery.getFromAddress().getStreet().equals(delivery.getToAddress().getStreet())) {
+        if (order.getDeliveryVolume() != null) {
+            deliveryPrice = deliveryPrice.add(
+                    BigDecimal.valueOf(order.getDeliveryVolume()).multiply(VOLUME_RATIO));
+        }
+
+        String fromStreet = fromAddress != null ? fromAddress.getStreet() : null;
+        String toStreet = delivery.getToAddress() != null ? delivery.getToAddress().getStreet() : null;
+
+        if (fromStreet != null && toStreet != null && !fromStreet.equals(toStreet)) {
             deliveryPrice = deliveryPrice.add(deliveryPrice.multiply(ADDRESS_RATIO));
         }
 

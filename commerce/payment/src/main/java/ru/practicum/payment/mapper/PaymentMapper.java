@@ -5,7 +5,7 @@ import ru.practicum.interaction.api.payment.dto.PaymentDto;
 import ru.practicum.payment.model.Payment;
 
 @Mapper(
-        componentModel = "spring",
+        componentModel = MappingConstants.ComponentModel.SPRING,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )

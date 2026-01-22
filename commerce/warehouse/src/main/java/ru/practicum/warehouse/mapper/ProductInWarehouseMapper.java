@@ -5,7 +5,7 @@ import ru.practicum.interaction.api.warehouse.dto.ProductInWarehouseDto;
 import ru.practicum.warehouse.model.NewProductInWarehouseRequest;
 import ru.practicum.warehouse.model.ProductInWarehouse;
 
-@Mapper(componentModel = "spring",
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductInWarehouseMapper {
 

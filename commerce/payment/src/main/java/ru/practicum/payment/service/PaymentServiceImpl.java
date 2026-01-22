@@ -17,8 +17,11 @@ import ru.practicum.payment.mapper.PaymentMapper;
 import ru.practicum.payment.repository.PaymentRepository;
 
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +36,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderClient orderClient;
 
     private final BigDecimal TAX = BigDecimal.valueOf(0.1);
+
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Override
     @Transactional
@@ -75,6 +80,80 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public BigDecimal calculateProductCost(OrderDto order) {
         Map<UUID, Integer> products = order.getProducts();
+        if (products == null || products.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        List<UUID> productIds = new ArrayList<>(products.keySet());
+
+        try {
+            return calculateWithBatchRequest(products, productIds);
+        } catch (Exception e) {
+            log.warn("Batch запрос не поддерживается, используем параллельные запросы");
+            return calculateWithParallelRequests(products, productIds);
+        }
+    }
+
+    private BigDecimal calculateWithBatchRequest(Map<UUID, Integer> products, List<UUID> productIds) {
+        try {
+            List<ProductDto> allProducts = shoppingStoreClient.getProductsByIds(productIds);
+
+            Map<UUID, ProductDto> productMap = allProducts.stream()
+                    .filter(product -> product != null && product.getProductId() != null)
+                    .collect(Collectors.toMap(
+                            ProductDto::getProductId,
+                            product -> product,
+                            (existing, replacement) -> existing
+                    ));
+
+            BigDecimal totalCost = BigDecimal.ZERO;
+
+            for (Map.Entry<UUID, Integer> entry : products.entrySet()) {
+                UUID productId = entry.getKey();
+                Integer quantity = entry.getValue();
+
+                ProductDto product = productMap.get(productId);
+                if (product != null && product.getPrice() != null) {
+                    totalCost = totalCost.add(
+                            product.getPrice().multiply(BigDecimal.valueOf(quantity))
+                    );
+                } else {
+                    log.warn("Продукт с id: {} не найден или не имеет цены, пропускаю.", productId);
+                }
+            }
+
+            return totalCost;
+
+        } catch (Exception e) {
+            log.error("Ошибка при batch запросе продуктов: {}", e.getMessage());
+            return calculateWithSequentialRequests(products);
+        }
+    }
+
+    private BigDecimal calculateWithParallelRequests(Map<UUID, Integer> products, List<UUID> productIds) {
+        List<CompletableFuture<BigDecimal>> futures = productIds.stream()
+                .map(productId -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        ProductDto product = shoppingStoreClient.getProductById(productId);
+                        Integer quantity = products.get(productId);
+                        if (product != null && product.getPrice() != null && quantity != null) {
+                            return product.getPrice().multiply(BigDecimal.valueOf(quantity));
+                        }
+                    } catch (ProductNotFoundException e) {
+                        log.warn("Продукт с id: {} не найден, пропускаю.", productId);
+                    } catch (Exception e) {
+                        log.error("Ошибка при запросе продукта {}: {}", productId, e.getMessage());
+                    }
+                    return BigDecimal.ZERO;
+                }, executorService))
+                .collect(Collectors.toList());
+
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateWithSequentialRequests(Map<UUID, Integer> products) {
         BigDecimal productCost = BigDecimal.ZERO;
 
         for (Map.Entry<UUID, Integer> entry : products.entrySet()) {
@@ -83,11 +162,15 @@ public class PaymentServiceImpl implements PaymentService {
 
             try {
                 ProductDto product = shoppingStoreClient.getProductById(productId);
-                productCost = productCost.add(
-                        product.getPrice().multiply(BigDecimal.valueOf(quantity))
-                );
+                if (product != null && product.getPrice() != null) {
+                    productCost = productCost.add(
+                            product.getPrice().multiply(BigDecimal.valueOf(quantity))
+                    );
+                }
             } catch (ProductNotFoundException e) {
                 log.warn("Продукт с id: {} не найден, пропускаю.", productId);
+            } catch (Exception e) {
+                log.error("Ошибка при запросе продукта {}: {}", productId, e.getMessage());
             }
         }
 
