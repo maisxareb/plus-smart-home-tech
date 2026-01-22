@@ -1,0 +1,39 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+spring:
+  application:
+    name: gateway
+
+  cloud:
+    config:
+      discovery:
+        enabled: true
+
+    gateway:
+      discovery.locator.enabled: true
+      routes:
+        - id: shopping_cart_route
+          uri: lb://shopping-cart
+          predicates:
+            - Path=/shopping-cart/**
+          filters:
+            - PrefixPath=/api/v1
+
+        - id: shopping-store-route
+          uri: lb://shopping-store
+          predicates:
+            - Path=/shopping-store/**
+          filters:
+            - PrefixPath=/api/v1
+            - name: Retry
+              args:
+                retries: 3
+                statuses:
+                  - NOT_FOUND
+                backoff:
+                  firstBackoff: 1s
+                  maxBackoff: 5s
+                  factor: 2

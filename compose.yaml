@@ -1,5 +1,5 @@
 services:
-  stats-db:
+  analyzer-db:
     image: postgres:16.1
     container_name: analyze-db
     ports:
@@ -9,13 +9,43 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
 
+  store-db:
+    image: postgres:16.1
+    container_name: store-db
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=store
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+
+  cart-db:
+    image: postgres:16.1
+    container_name: cart-db
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_DB=cart
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+
+  warehouse-db:
+    image: postgres:16.1
+    container_name: warehouse-db
+    ports:
+      - "5436:5432"
+    environment:
+      - POSTGRES_DB=warehouse
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+
   kafka:
     image: confluentinc/confluent-local:7.4.3
     hostname: kafka
     container_name: kafka
     ports:
-      - "9092:9092" # for client connections
-      - "9101:9101" # JMX
+      - "9092:9092"
+      - "9101:9101"
     restart: unless-stopped
     environment:
       KAFKA_NODE_ID: 1
@@ -43,3 +73,12 @@ services:
                              --partitions 1 --replication-factor 1 --if-not-exists \
                              --bootstrap-server kafka:29092'"
     init: true
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "9999:8080"
+    environment:
+      SWAGGER_JSON: /docs/shopping-store.json
+    volumes:
+      - ./docs:/docs:ro
