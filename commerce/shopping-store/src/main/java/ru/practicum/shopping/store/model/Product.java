@@ -3,7 +3,9 @@ package ru.practicum.shopping.store.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
+
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "shopping_store")
@@ -16,7 +18,7 @@ public class Product {
 
     @Id
     @UuidGenerator
-    private String productId;
+    private UUID productId;
 
     @Column(name = "product_name", nullable = false)
     private String productName;
@@ -39,6 +41,6 @@ public class Product {
     @Column(name = "product_category", nullable = false)
     private ProductCategory productCategory;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false)
     private BigDecimal price;
 }

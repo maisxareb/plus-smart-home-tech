@@ -1,16 +1,18 @@
 package ru.practicum.interaction.api.shopping.store.dto;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @Builder
 public class ProductDto {
 
-    private String productId;
+    private UUID productId;
 
     @NotBlank
     private String productName;

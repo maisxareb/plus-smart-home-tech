@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.practicum.interaction.api.warehouse.dto.DimensionDto;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "warehouse_products")
 @Getter
@@ -15,7 +17,7 @@ public class ProductInWarehouse {
 
     @Id
     @Column(name = "product_id")
-    private String productId;
+    private UUID productId;
 
     @Column(nullable = false)
     private Boolean fragile;

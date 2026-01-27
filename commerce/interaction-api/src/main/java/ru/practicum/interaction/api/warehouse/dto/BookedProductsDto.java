@@ -10,5 +10,6 @@ public class BookedProductsDto {
     private Double deliveryWeight = 0.0;
     @Builder.Default
     private Double deliveryVolume = 0.0;
-    private Boolean fragile;
+    @Builder.Default
+    private Boolean fragile = false;
 }

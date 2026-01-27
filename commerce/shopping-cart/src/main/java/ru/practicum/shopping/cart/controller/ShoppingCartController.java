@@ -2,6 +2,7 @@ package ru.practicum.shopping.cart.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.interaction.api.shopping.cart.dto.ShoppingCartDto;
 import ru.practicum.shopping.cart.model.UpdateProductQuantityRequest;
@@ -9,6 +10,7 @@ import ru.practicum.shopping.cart.service.CartService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -24,17 +26,18 @@ public class ShoppingCartController {
     }
 
     @PutMapping
-    public ShoppingCartDto addProductToCart(@RequestParam String username, @RequestBody Map<String, Integer> products) {
+    public ShoppingCartDto addProductToCart(@RequestParam String username, @RequestBody Map<UUID, Integer> products) {
         return service.addProductToCart(username, products);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping
     public void deactivateCart(@RequestParam String username) {
         service.deactivateCart(username);
     }
 
     @PostMapping("/remove")
-    public ShoppingCartDto removeProductFromCart(@RequestParam String username, @RequestBody List<String> products) {
+    public ShoppingCartDto removeProductFromCart(@RequestParam String username, @RequestBody List<UUID> products) {
         return service.removeProductFromCart(username, products);
     }
 

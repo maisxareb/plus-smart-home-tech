@@ -5,32 +5,32 @@ import ru.practicum.interaction.api.shopping.cart.dto.ShoppingCartDto;
 import ru.practicum.shopping.cart.model.Cart;
 import ru.practicum.shopping.cart.model.CartItem;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
-public abstract class CartMapper {
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
+public interface CartMapper {
 
-    public ShoppingCartDto toDto(Cart shoppingCart) {
-        if (shoppingCart == null) {
-            return null;
-        }
+    @Mapping(target = "products", source = "items", qualifiedByName = "itemsToMap")
+    ShoppingCartDto toDto(Cart shoppingCart);
 
-        return ShoppingCartDto.builder()
-                .shoppingCartId(shoppingCart.getShoppingCartId())
-                .products(itemsToMap(shoppingCart.getItems()))
-                .build();
-    }
-
-    public abstract Cart toEntity(ShoppingCartDto shoppingCartDto);
+    @Mapping(target = "items", source = "products", qualifiedByName = "mapToItems")
+    Cart toEntity(ShoppingCartDto shoppingCartDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "shoppingCartId", ignore = true)
-    public abstract void updateEntityFromDto(ShoppingCartDto dto, @MappingTarget Cart entity);
+    @Mapping(target = "items", source = "products", qualifiedByName = "mapToItems")
+    void updateEntityFromDto(ShoppingCartDto dto, @MappingTarget Cart entity);
 
-    protected Map<String, Integer> itemsToMap(List<CartItem> items) {
+    @Named("itemsToMap")
+    default Map<UUID, Integer> itemsToMap(List<CartItem> items) {
         if (items == null || items.isEmpty()) {
-            return Collections.emptyMap();
+            return Map.of();
         }
         return items.stream()
                 .collect(Collectors.toMap(
@@ -39,9 +39,10 @@ public abstract class CartMapper {
                 ));
     }
 
-    protected List<CartItem> mapToItems(Map<String, Integer> products) {
+    @Named("mapToItems")
+    default List<CartItem> mapToItems(Map<UUID, Integer> products) {
         if (products == null || products.isEmpty()) {
-            return Collections.emptyList();
+            return List.of();
         }
         return products.entrySet().stream()
                 .map(entry -> {
